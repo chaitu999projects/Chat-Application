@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="chat-container">
+        <header>
+            <h1>Chat Room</h1>
+            <div class="user-info">
+                <span id="username-display"></span>
+                <button id="logout-btn">Logout</button>
+            </div>
+        </header>
+        
+        <div id="messages" class="messages-container"></div>
+        
+        <form id="message-form" class="message-form">
+            <input type="text" id="message-input" placeholder="Type your message..." required>
+            <button type="submit">Send</button>
+        </form>
+    </div>
+
+    <script>
+        // Get username from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const username = urlParams.get('username');
+        document.getElementById('username-display').textContent = `Hello, ${username}!`;
+
+        // DOM elements
+        const messagesContainer = document.getElementById('messages');
+        const messageForm = document.getElementById('message-form');
+        const messageInput = document.getElementById('message-input');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        // Load messages
+        async function loadMessages() {
+            try {
+                const response = await fetch('/messages');
+                const messages = await response.json();
+                
+                messagesContainer.innerHTML = messages.map(msg => `
+                    <div class="message">
+                        <span class="message-username">${msg.username}:</span>
+                        <span class="message-text">${msg.message}</span>
+                `).join('');
+                
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            } catch (err) {
+                console.error('Error loading messages:', err);
+            }
+        }
+
+        // Send message
+        messageForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            try {
+                await fetch('/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, message }),
+                });
+                
+                messageInput.value = '';
+                await loadMessages();
+            } catch (err) {
+                console.error('Error sending message:', err);
+            }
+        });
+
+        // Logout
+        logoutBtn.addEventListener('click', () => {
+            window.location.href = '/';
+        });
+
+        // Load messages initially and set up refresh
+        loadMessages();
+        setInterval(loadMessages, 2000);
+    </script>
+</body>
+</html>
