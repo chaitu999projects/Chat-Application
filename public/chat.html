@@ -29,7 +29,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const username = urlParams.get('username');
         document.getElementById('username-display').textContent = `Hello, ${username}!`;
-
+        window.history.replaceState({}, document.title, window.location.pathname);
         // DOM elements
         const messagesContainer = document.getElementById('messages');
         const messageForm = document.getElementById('message-form');
